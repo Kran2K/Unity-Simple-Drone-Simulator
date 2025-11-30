@@ -2682,17 +2682,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6f4a18909fcd78047b5d3cee4cc6f041, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DroneManager
-  listenPort: 56789
+  listenPort: 8080
   targetIP: 127.0.0.1
   sendPort: 8081
   sendRate: 0.05
   takeoffHeight: 2
-  maxSpeed: 15
-  moveSmoothTime: 1.5
-  velAccFactor: 1
+  maxSpeedHorizontal: 10
+  maxSpeedVertical: 3
+  maxAcceleration: 5
+  moveSmoothTime: 3
   rotSmoothTime: 1
-  maxTiltAngle: 30
-  tiltSensitivity: 1.5
+  maxTiltAngle: 25
+  tiltSensitivity: 4
   enableNoise: 1
   noiseStrength: 0.2
 --- !u!54 &533874960
@@ -2808,7 +2809,7 @@ Transform:
   m_GameObject: {fileID: 533874958}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -238.73566, y: -28.73, z: 253.04716}
+  m_LocalPosition: {x: -238.73566, y: -28.79, z: 253.04716}
   m_LocalScale: {x: 1, y: 0.2, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

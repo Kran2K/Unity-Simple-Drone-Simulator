@@ -17,14 +17,14 @@ public class DroneDebuggerUI : MonoBehaviour
 
     private void Start()
     {
-        // Dropdown 옵션 초기화 (POS, VEL, TAKEOFF, LAND)
+        // 드롭다운 옵션 초기화 (POS, VEL, TAKEOFF, LAND)
         modeDropdown.ClearOptions();
         modeDropdown.AddOptions(new System.Collections.Generic.List<string> { "POS", "VEL", "TAKEOFF", "LAND" });
 
         sendBtn.onClick.AddListener(OnSend);
         modeDropdown.onValueChanged.AddListener(OnModeChange);
         
-        // 초기값
+        // 입력 필드 초기값 설정
         inputX.text = "0"; inputY.text = "5"; inputZ.text = "0"; inputYaw.text = "0";
     }
 
@@ -33,7 +33,7 @@ public class DroneDebuggerUI : MonoBehaviour
         if (manager == null) return;
         var t = manager.CurrentTelemetry;
 
-        // UI에 표시할 상태 텍스트
+        // UI에 표시할 드론 상태 텍스트
         string status = $"<size=110%><b>DRONE STATUS</b></size>\n" +
                         $"----------------------\n" +
                         $"<b>MODE :</b> <color={(t.isArmed ? "green" : "red")}>{t.mode}</color>\n" +
@@ -45,7 +45,7 @@ public class DroneDebuggerUI : MonoBehaviour
                         $"<b>[VELOCITY]</b>\n" +
                         $"X: {t.velocity.x:F2}  Y: {t.velocity.y:F2}  Z: {t.velocity.z:F2}\n\n" +
                         $"<b>[ATTITUDE]</b>\n" +
-                        $"R: {t.attitude.x:F1}  P: {t.attitude.z:F1}  Y: {t.attitude.y:F1}"; // Roll/Pitch 순서 주의 (Unity는 X가 Pitch일 수 있음)
+                        $"R: {t.attitude.x:F1}  P: {t.attitude.z:F1}  Y: {t.attitude.y:F1}"; // Roll/Pitch 순서에 유의 (Unity는 X가 Pitch일 수 있음)
         
         statusText.text = status;
     }
@@ -57,13 +57,13 @@ public class DroneDebuggerUI : MonoBehaviour
         float.TryParse(inputZ.text, out float z);
         float.TryParse(inputYaw.text, out float yaw);
 
-        DronePacket p = new DronePacket { type = "CMD", x = x, y = y, z = z, yaw = yaw };
+        DroneCommand p = new DroneCommand { type = "CMD", x = x, y = y, z = z, yaw = yaw };
         manager.InjectCommand(p);
     }
 
     private void OnModeChange(int idx)
     {
         string m = modeDropdown.options[idx].text;
-        manager.InjectCommand(new DronePacket { type = "MODE", mode = m });
+        manager.InjectCommand(new DroneCommand { type = "MODE", mode = m });
     }
 }
