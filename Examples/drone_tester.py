@@ -1,0 +1,210 @@
+import socket
+import json
+import threading
+import tkinter as tk
+from tkinter import ttk
+from typing import Dict, Any, Optional
+
+# --- 설정 상수 ---
+# Unity 시뮬레이터의 IP와 포트
+TARGET_IP = '127.0.0.1'
+# DroneManager.cs의 listenPort와 일치해야 함
+TARGET_PORT = 8080
+# DroneManager.cs의 sendPort와 일치해야 함
+LISTEN_PORT = 8081
+# UI 갱신 주기 (ms). 20ms = 50 FPS
+UI_UPDATE_INTERVAL_MS = 20
+
+class DroneCommSystem:
+    """
+    드론 시뮬레이터와의 UDP 통신을 담당하는 클래스.
+    """
+    def __init__(self, target_ip: str, target_port: int, listen_port: int):
+        self.target_ip = target_ip
+        self.target_port = target_port
+        self.listen_port = listen_port
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.sock.bind(('0.0.0.0', self.listen_port))
+        self.sock.settimeout(0.1) # 블로킹 방지를 위한 타임아웃
+        self.running = False
+
+    def send_command(self, packet: Dict[str, Any]) -> None:
+        """명령 패킷을 시뮬레이터로 전송합니다."""
+        try:
+            payload = json.dumps(packet).encode('utf-8')
+            self.sock.sendto(payload, (self.target_ip, self.target_port))
+        except Exception as e:
+            print(f"[통신 오류] 전송 실패: {e}")
+
+    def listen_telemetry(self, callback) -> None:
+        """텔레메트리 데이터 수신을 시작하고, 수신 시 콜백 함수를 호출합니다."""
+        self.running = True
+        while self.running:
+            try:
+                data, _ = self.sock.recvfrom(4096)
+                packet = json.loads(data.decode('utf-8'))
+                callback(packet)
+            except socket.timeout:
+                continue # 타임아웃 시 루프 계속
+            except (json.JSONDecodeError, UnicodeDecodeError):
+                continue # 잘못된 형식의 패킷은 무시
+            except Exception as e:
+                if self.running:
+                    print(f"[통신 오류] 수신 실패: {e}")
+
+    def close(self):
+        """소켓 통신을 종료합니다."""
+        self.running = False
+        self.sock.close()
+        print("[통신] 연결이 종료되었습니다.")
+
+
+class DroneDashboard(tk.Tk):
+    """
+    드론 제어 및 텔레메트리 모니터링을 위한 Tkinter 기반 대시보드 UI.
+    """
+    def __init__(self):
+        super().__init__()
+        self.title("드론 GCS (Ground Control Station)")
+        self.geometry("600x750")
+        self.resizable(False, False)
+        
+        # 스레드 간의 안전한 데이터 공유를 위한 락(Lock)과 데이터 저장소
+        self.latest_data: Optional[Dict] = None
+        self.data_lock = threading.Lock()
+
+        # 통신 시스템 초기화
+        self.comm = DroneCommSystem(
+            target_ip=TARGET_IP, 
+            target_port=TARGET_PORT, 
+            listen_port=LISTEN_PORT
+        )
+
+        self._init_ui()
+        
+        # 1. 텔레메트리 수신 스레드 시작
+        self.telemetry_thread = threading.Thread(
+            target=self.comm.listen_telemetry, 
+            args=(self.update_data_buffer,), 
+            daemon=True
+        )
+        self.telemetry_thread.start()
+
+        # 2. UI 갱신 루프 시작
+        self.update_ui_loop()
+
+        # 3. 창 종료 시 자원 해제 핸들러 등록
+        self.protocol("WM_DELETE_WINDOW", self.on_closing)
+
+    def _init_ui(self):
+        """UI 위젯들을 생성하고 배치합니다."""
+        style = ttk.Style()
+        style.theme_use('clam')
+
+        # 텔레메트리 프레임
+        telemetry_frame = ttk.LabelFrame(self, text="실시간 텔레메트리", padding=15)
+        telemetry_frame.pack(fill="x", padx=10, pady=10)
+
+        self.telemetry_labels = {}
+        fields = ["Time", "Mode", "Battery", "Position", "Velocity", "Attitude"]
+        
+        for i, field in enumerate(fields):
+            ttk.Label(telemetry_frame, text=f"{field}:", font=("Helvetica", 10, "bold")).grid(row=i, column=0, sticky="w", pady=2)
+            lbl = ttk.Label(telemetry_frame, text="수신 대기중...", font=("Consolas", 10))
+            lbl.grid(row=i, column=1, sticky="w", padx=10)
+            self.telemetry_labels[field] = lbl
+
+        # 커맨드 프레임
+        cmd_frame = ttk.LabelFrame(self, text="명령 전송", padding=15)
+        cmd_frame.pack(fill="both", expand=True, padx=10, pady=10)
+
+        ttk.Label(cmd_frame, text="비행 모드:").grid(row=0, column=0, sticky="w")
+        self.mode_var = tk.StringVar(value="POS")
+        ttk.Combobox(cmd_frame, textvariable=self.mode_var, values=["POS", "VEL", "TAKEOFF", "LAND"], state="readonly").grid(row=0, column=1, pady=5, sticky="ew")
+
+        self.entries = {}
+        labels = ["X", "Y", "Z", "Yaw"]
+        default_values = ["0.0", "5.0", "0.0", "0.0"] # 이륙을 위한 기본 Y값
+        keys = ["x", "y", "z", "yaw"]
+        for i, (label, key, val) in enumerate(zip(labels, keys, default_values)):
+            ttk.Label(cmd_frame, text=label).grid(row=i+1, column=0, sticky="w", pady=5)
+            ent = ttk.Entry(cmd_frame)
+            ent.insert(0, val)
+            ent.grid(row=i+1, column=1, sticky="ew", pady=5)
+            self.entries[key] = ent
+
+        btn_frame = ttk.Frame(cmd_frame)
+        btn_frame.grid(row=5, column=0, columnspan=2, pady=15)
+        ttk.Button(btn_frame, text="모드 설정", command=self.send_mode_packet).pack(side="left", padx=5)
+        ttk.Button(btn_frame, text="명령 전송", command=self.send_control_packet).pack(side="left", padx=5)
+
+    def update_data_buffer(self, packet: Dict[str, Any]):
+        """
+        [백그라운드 스레드에서 실행] UI를 직접 건드리지 않고, 최신 데이터만 갱신합니다.
+        이를 통해 UI 멈춤(렉) 현상을 방지합니다.
+        """
+        with self.data_lock:
+            self.latest_data = packet
+
+    def update_ui_loop(self):
+        """
+        [메인 스레드에서 실행] 주기적으로 최신 데이터를 가져와 UI에 표시합니다.
+        """
+        with self.data_lock:
+            data = self.latest_data
+        
+        if data:
+            try:
+                pos = data.get("position", {})
+                vel = data.get("velocity", {})
+                att = data.get("attitude", {})
+
+                # 텍스트 포맷팅을 여기서 한 번만 수행하여 효율성 증대
+                self.telemetry_labels["Time"].config(text=f"{data.get('time', 0):.2f} s")
+                self.telemetry_labels["Mode"].config(text=data.get("mode", "N/A"))
+                self.telemetry_labels["Battery"].config(text=f"{data.get('battery', 0):.2f} V")
+                self.telemetry_labels["Position"].config(text=f"X: {pos.get('x',0):.2f}, Y: {pos.get('y',0):.2f}, Z: {pos.get('z',0):.2f}")
+                self.telemetry_labels["Velocity"].config(text=f"X: {vel.get('x',0):.2f}, Y: {vel.get('y',0):.2f}, Z: {vel.get('z',0):.2f}")
+                self.telemetry_labels["Attitude"].config(text=f"R: {att.get('x',0):.1f}, P: {att.get('z',0):.1f}, Y: {att.get('y',0):.1f}")
+            except (tk.TclError, AttributeError):
+                # 창이 닫히는 과정에서 발생할 수 있는 사소한 에러는 무시
+                pass
+
+        # 지정된 시간(ms) 이후에 이 함수를 다시 실행하도록 스케줄링
+        self.after(UI_UPDATE_INTERVAL_MS, self.update_ui_loop)
+
+    def get_float_input(self, key: str) -> float:
+        """입력 필드에서 숫자 값을 안전하게 가져옵니다."""
+        try:
+            return float(self.entries[key].get())
+        except ValueError:
+            return 0.0
+
+    def send_mode_packet(self):
+        """'모드 설정' 버튼에 연결된 기능. MODE 타입의 패킷을 전송합니다."""
+        packet = {
+            "type": "MODE",
+            "mode": self.mode_var.get(),
+            "x": 0.0, "y": 0.0, "z": 0.0, "yaw": 0.0 # 모드 변경 시 제어값은 사용되지 않음
+        }
+        self.comm.send_command(packet)
+
+    def send_control_packet(self):
+        """'명령 전송' 버튼에 연결된 기능. CMD 타입의 패킷을 전송합니다."""
+        packet = {
+            "type": "CMD",
+            "x": self.get_float_input("x"),
+            "y": self.get_float_input("y"),
+            "z": self.get_float_input("z"),
+            "yaw": self.get_float_input("yaw")
+        }
+        self.comm.send_command(packet)
+
+    def on_closing(self):
+        """창이 닫힐 때 호출되어 자원을 안전하게 해제합니다."""
+        self.comm.close()
+        self.destroy()
+
+if __name__ == "__main__":
+    app = DroneDashboard()
+    app.mainloop()
