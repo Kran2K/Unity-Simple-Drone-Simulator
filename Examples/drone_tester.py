@@ -106,7 +106,7 @@ class DroneDashboard(tk.Tk):
         telemetry_frame.pack(fill="x", padx=10, pady=10)
 
         self.telemetry_labels = {}
-        fields = ["Time", "Mode", "Battery", "Position", "Velocity", "Attitude"]
+        fields = ["Time", "Mode", "Battery", "Position", "Velocity", "Acceleration", "Attitude", "AngularVel"]
         
         for i, field in enumerate(fields):
             ttk.Label(telemetry_frame, text=f"{field}:", font=("Helvetica", 10, "bold")).grid(row=i, column=0, sticky="w", pady=2)
@@ -157,7 +157,9 @@ class DroneDashboard(tk.Tk):
             try:
                 pos = data.get("position", {})
                 vel = data.get("velocity", {})
+                acc = data.get("acceleration", {})
                 att = data.get("attitude", {})
+                ang_vel = data.get("angularVel", {})
 
                 # 텍스트 포맷팅을 여기서 한 번만 수행하여 효율성 증대
                 self.telemetry_labels["Time"].config(text=f"{data.get('time', 0):.2f} s")
@@ -165,7 +167,9 @@ class DroneDashboard(tk.Tk):
                 self.telemetry_labels["Battery"].config(text=f"{data.get('battery', 0):.2f} V")
                 self.telemetry_labels["Position"].config(text=f"X: {pos.get('x',0):.2f}, Y: {pos.get('y',0):.2f}, Z: {pos.get('z',0):.2f}")
                 self.telemetry_labels["Velocity"].config(text=f"X: {vel.get('x',0):.2f}, Y: {vel.get('y',0):.2f}, Z: {vel.get('z',0):.2f}")
+                self.telemetry_labels["Acceleration"].config(text=f"X: {acc.get('x',0):.2f}, Y: {acc.get('y',0):.2f}, Z: {acc.get('z',0):.2f}")
                 self.telemetry_labels["Attitude"].config(text=f"R: {att.get('x',0):.1f}, P: {att.get('z',0):.1f}, Y: {att.get('y',0):.1f}")
+                self.telemetry_labels["AngularVel"].config(text=f"X: {ang_vel.get('x',0):.1f}, Y: {ang_vel.get('y',0):.1f}, Z: {ang_vel.get('z',0):.1f}")
             except (tk.TclError, AttributeError):
                 # 창이 닫히는 과정에서 발생할 수 있는 사소한 에러는 무시
                 pass

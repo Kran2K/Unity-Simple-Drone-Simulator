@@ -80,6 +80,7 @@ public class DroneManager : MonoBehaviour
     private Vector3 _prevVel;       // 이전 프레임 속도 (가속도 계산용)
     private Vector3 _currentAccel;  // 현재 가속도
     private float _yawVel;          // Yaw 각속도
+    private Vector3 _currentAngularVel; // 현재 각속도
     
     // 노이즈 시드
     private Vector3 _noiseSeed;
@@ -393,6 +394,11 @@ public class DroneManager : MonoBehaviour
         float newRoll = Mathf.Lerp(currentRoll, targetRoll, dt * 5.0f);
         float newPitch = Mathf.Lerp(currentPitch, targetPitch, dt * 5.0f);
 
+        // 각속도 계산
+        float rollVel = (newRoll - currentRoll) / dt;
+        float pitchVel = (newPitch - currentPitch) / dt;
+        _currentAngularVel = new Vector3(rollVel, _yawVel, pitchVel);
+
         // 최종 회전 및 위치 적용
         transform.rotation = Quaternion.Euler(newRoll, currentYaw, newPitch);
         transform.position = nextPos;
@@ -430,7 +436,7 @@ public class DroneManager : MonoBehaviour
             velocity = _currentVel,    // 현재 속도
             acceleration = _currentAccel, // 현재 가속도
             attitude = new Vector3(roll, pitch, yaw), // 자세 (Roll, Pitch, Yaw)
-            angularVel = new Vector3(0, _yawVel, 0) // 각속도
+            angularVel = _currentAngularVel // 각속도
         };
 
         try

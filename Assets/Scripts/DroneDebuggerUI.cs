@@ -34,18 +34,22 @@ public class DroneDebuggerUI : MonoBehaviour
         var t = manager.CurrentTelemetry;
 
         // UI에 표시할 드론 상태 텍스트
-        string status = $"<size=110%><b>DRONE STATUS</b></size>\n" +
+        string status = $"<size=120%><b>DRONE STATUS</b></size>\n" +
                         $"----------------------\n" +
                         $"<b>MODE :</b> <color={(t.isArmed ? "green" : "red")}>{t.mode}</color>\n" +
                         $"<b>ARMED:</b> {(t.isArmed ? "YES" : "NO")}\n" +
                         $"<b>BATT :</b> {t.battery} V\n" +
-                        $"<b>GND_DIST :</b> {(t.dist_bottom < 0 ? "N/A" : t.dist_bottom.ToString("F2") + " m")}\n\n" +
+                        $"<b>DIST_BOTTOM :</b> {(t.dist_bottom < 0 ? "N/A" : t.dist_bottom.ToString("F2") + " m")}\n\n" +
                         $"<b>[LOCAL POS] (Home Ref)</b>\n" +
                         $"X: {t.position.x:F2}  Y: {t.position.y:F2}  Z: {t.position.z:F2}\n\n" +
                         $"<b>[VELOCITY]</b>\n" +
                         $"X: {t.velocity.x:F2}  Y: {t.velocity.y:F2}  Z: {t.velocity.z:F2}\n\n" +
+                        $"<b>[ACCELERATION]</b>\n" +
+                        $"X: {t.acceleration.x:F2}  Y: {t.acceleration.y:F2}  Z: {t.acceleration.z:F2}\n\n" +
                         $"<b>[ATTITUDE]</b>\n" +
-                        $"Roll: {t.attitude.x:F1}  Pitch: {t.attitude.y:F1}  Yaw: {t.attitude.z:F1}"; // Attitude: (Pitch, Roll, Yaw)
+                        $"Roll: {t.attitude.x:F1}  Pitch: {t.attitude.y:F1}  Yaw: {t.attitude.z:F1}\n\n" +
+                        $"<b>[ANGULAR VEL]</b>\n" +
+                        $"X: {t.angularVel.x:F1}  Y: {t.angularVel.y:F1}  Z: {t.angularVel.z:F1}";
         
         statusText.text = status;
     }
