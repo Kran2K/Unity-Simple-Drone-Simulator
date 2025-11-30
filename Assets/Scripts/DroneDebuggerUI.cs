@@ -38,7 +38,8 @@ public class DroneDebuggerUI : MonoBehaviour
                         $"----------------------\n" +
                         $"<b>MODE :</b> <color={(t.isArmed ? "green" : "red")}>{t.mode}</color>\n" +
                         $"<b>ARMED:</b> {(t.isArmed ? "YES" : "NO")}\n" +
-                        $"<b>BATT :</b> {t.battery} V\n\n" +
+                        $"<b>BATT :</b> {t.battery} V\n" +
+                        $"<b>GND_DIST :</b> {(t.dist_bottom < 0 ? "N/A" : t.dist_bottom.ToString("F2") + " m")}\n\n" +
                         $"<b>[LOCAL POS] (Home Ref)</b>\n" +
                         $"X: {t.position.x:F2}  Y: {t.position.y:F2}  Z: {t.position.z:F2}\n\n" +
                         $"<b>[VELOCITY]</b>\n" +

@@ -24,6 +24,7 @@ public struct DroneTelemetry
     public string mode;       // 현재 모드
     public bool isArmed;      // 시동 여부 (추가됨)
     public float battery;     // 배터리 전압 (추가됨)
+    public float dist_bottom;
     public Vector3 position;  // Home 기준 로컬 위치
     public Vector3 velocity;
     public Vector3 acceleration;
@@ -86,6 +87,7 @@ public class DroneManager : MonoBehaviour
     private bool _isRunning = true;
     private ConcurrentQueue<DronePacket> _commandQueue = new ConcurrentQueue<DronePacket>();
     private float _lastSendTime;
+    private float _distanceToGround;
 
     void Start()
     {
@@ -150,6 +152,7 @@ public class DroneManager : MonoBehaviour
     {
         ProcessCommands();
         UpdateDynamics();
+        UpdateGroundDistance();
         UpdateBattery();
         PublishTelemetry();
     }
@@ -178,8 +181,8 @@ public class DroneManager : MonoBehaviour
             case "TAKEOFF":
                 if (!IsArmed) ArmDrone();
                 CurrentMode = FlightMode.Takeoff;
-                // 이륙 목표: 홈 위치 + 지정 높이
-                _targetWorldPos = _homePos + Vector3.up * takeoffHeight;
+                // 이륙 목표: 현재 위치에서 지정 높이만큼 상승
+                _targetWorldPos = new Vector3(transform.position.x, transform.position.y + takeoffHeight, transform.position.z);
                 // Yaw는 현재 유지
                 _targetYaw = transform.eulerAngles.y; 
                 Debug.Log("[Mode] TAKEOFF Sequence Initiated.");
@@ -240,6 +243,20 @@ public class DroneManager : MonoBehaviour
         Debug.Log(">>> DRONE DISARMED <<<");
     }
 
+    private void UpdateGroundDistance()
+    {
+        RaycastHit hit;
+        // 아래 방향으로 Raycast, 최대 1000m
+        if (Physics.Raycast(transform.position, Vector3.down, out hit, 1000f))
+        {
+            _distanceToGround = hit.distance;
+        }
+        else
+        {
+            _distanceToGround = -1f; // 감지되지 않으면 -1
+        }
+    }
+
     private void UpdateDynamics()
     {
         float dt = Time.deltaTime;
@@ -269,12 +286,14 @@ public class DroneManager : MonoBehaviour
                 break;
 
             case FlightMode.Land:
-                if (transform.position.y > _homePos.y + 0.05f)
-                {
-                    nextPos += Vector3.down * 1.0f * dt;
-                    _currentVel = Vector3.down * 1.0f;
-                }
-                else
+                // 착륙 시에는 수평 속도는 0으로, 수직 속도는 -1.0f로 타겟을 설정합니다.
+                var landingTargetVel = new Vector3(0, -1.0f, 0);
+                // 현재 속도에서 착륙 목표 속도로 부드럽게 전환합니다. (관성 유지)
+                _currentVel = Vector3.Lerp(_currentVel, landingTargetVel, velAccFactor * dt);   
+                nextPos += _currentVel * dt;
+                
+                // 지면 근접 시 착륙 (기존 조건 유지)
+                if (!(_distanceToGround > 0.15f || _distanceToGround < 0))
                 {
                     DisarmDrone();
                     return;
@@ -350,6 +369,7 @@ public class DroneManager : MonoBehaviour
             mode = CurrentMode.ToString(),
             isArmed = IsArmed,
             battery = (float)Math.Round(_batteryVoltage, 2),
+            dist_bottom = _distanceToGround,
             position = localPos,       // Local Position
             velocity = _currentVel,
             acceleration = _currentAccel,
