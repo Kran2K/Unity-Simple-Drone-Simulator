@@ -2682,7 +2682,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6f4a18909fcd78047b5d3cee4cc6f041, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DroneManager
-  listenPort: 8080
+  listenPort: 50100
   targetIP: 127.0.0.1
   sendPort: 8081
   sendRate: 0.05
@@ -2696,6 +2696,10 @@ MonoBehaviour:
   tiltSensitivity: 4
   enableNoise: 1
   noiseStrength: 0.2
+  landingDecelHeight: 2
+  normalLandingSpeed: 1
+  finalLandingSpeed: 0.2
+  landingDisarmHeight: 0.15
 --- !u!54 &533874960
 Rigidbody:
   m_ObjectHideFlags: 0
