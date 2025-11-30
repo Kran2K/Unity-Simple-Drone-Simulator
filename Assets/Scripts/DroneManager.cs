@@ -53,6 +53,12 @@ public class DroneManager : MonoBehaviour
     [SerializeField] private bool enableNoise = true;     // 호버링 노이즈 사용 여부
     [SerializeField] private float noiseStrength = 0.2f;  // 호버링 노이즈 강도
 
+    [Header("Landing Settings")]
+    [SerializeField] private float landingDecelHeight = 2.0f; // 감속 착륙 시작 높이
+    [SerializeField] private float normalLandingSpeed = 1.0f; // 일반 착륙 속도 (m/s, 양수 값)
+    [SerializeField] private float finalLandingSpeed = 0.2f;  // 최종 착륙 속도 (m/s, 양수 값)
+    [SerializeField] private float landingDisarmHeight = 0.15f; // 착륙 완료 및 시동 해제 높이
+
     // --- 상태 변수 ---
     public enum FlightMode { Disarmed, Position, Velocity, Takeoff, Land }
     public FlightMode CurrentMode { get; private set; } = FlightMode.Disarmed;
@@ -317,8 +323,20 @@ public class DroneManager : MonoBehaviour
 
             case FlightMode.Land:
                 {
-                    // 착륙 시 수평 속도는 0, 수직 속도는 -1.0f로 목표 설정
-                    var landingTargetVel = new Vector3(0, -1.0f, 0);
+                    float targetVertVel;
+                    // 지면이 감지되고 감속 높이 이내일 경우, 높이에 따라 목표 수직 속도를 조절
+                    if (_distanceToGround > 0 && _distanceToGround <= landingDecelHeight)
+                    {
+                        float t = Mathf.InverseLerp(landingDisarmHeight, landingDecelHeight, _distanceToGround);
+                        targetVertVel = -Mathf.Lerp(finalLandingSpeed, normalLandingSpeed, t);
+                    }
+                    else
+                    {
+                        targetVertVel = -normalLandingSpeed;
+                    }
+                    
+                    // 착륙 시 수평 속도는 0, 수직 속도는 계산된 값으로 목표 설정
+                    var landingTargetVel = new Vector3(0, targetVertVel, 0);
                     // 목표 속도로 가속도 제한을 적용하며 전환
                     _currentVel = Vector3.MoveTowards(_currentVel, landingTargetVel, maxAcceleration * dt);
 
@@ -331,7 +349,7 @@ public class DroneManager : MonoBehaviour
                     nextPos += _currentVel * dt;
                     
                     // 지면 근접 시 착륙 완료 및 Disarm
-                    if (!(_distanceToGround > 0.15f || _distanceToGround < 0))
+                    if (_distanceToGround > 0 && _distanceToGround <= landingDisarmHeight)
                     {
                         DisarmDrone();
                         return;
