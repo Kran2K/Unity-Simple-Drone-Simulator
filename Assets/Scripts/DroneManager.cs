@@ -98,6 +98,8 @@ public class DroneManager : MonoBehaviour
 
     void Start()
     {
+        Application.targetFrameRate = 60;
+
         // 1. Home 좌표(기준점) 설정
         _homePos = transform.position;
         _homeYaw = transform.eulerAngles.y;
