@@ -413,6 +413,12 @@ public class DroneManager : MonoBehaviour
         // 텔레메트리는 Home 기준 로컬 좌표로 변환하여 전송
         Vector3 localPos = transform.position - _homePos;
 
+        // Eueler 각도를 읽어와서 -180 ~ 180 범위로 변환하고, Roll, Pitch, Yaw 순서로 재정렬
+        Vector3 euler = transform.eulerAngles;
+        float roll = (euler.z > 180f) ? -(euler.z - 360f) : -euler.z;
+        float pitch = (euler.x > 180f) ? euler.x - 360f : euler.x;
+        float yaw = euler.y;
+
         CurrentTelemetry = new DroneTelemetry
         {
             time = Time.timeSinceLevelLoad,
@@ -423,7 +429,7 @@ public class DroneManager : MonoBehaviour
             position = localPos,       // 로컬 위치
             velocity = _currentVel,    // 현재 속도
             acceleration = _currentAccel, // 현재 가속도
-            attitude = transform.eulerAngles, // 자세 (Euler)
+            attitude = new Vector3(roll, pitch, yaw), // 자세 (Roll, Pitch, Yaw)
             angularVel = new Vector3(0, _yawVel, 0) // 각속도
         };
 

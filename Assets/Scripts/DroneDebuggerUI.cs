@@ -45,7 +45,7 @@ public class DroneDebuggerUI : MonoBehaviour
                         $"<b>[VELOCITY]</b>\n" +
                         $"X: {t.velocity.x:F2}  Y: {t.velocity.y:F2}  Z: {t.velocity.z:F2}\n\n" +
                         $"<b>[ATTITUDE]</b>\n" +
-                        $"R: {t.attitude.x:F1}  P: {t.attitude.z:F1}  Y: {t.attitude.y:F1}"; // Roll/Pitch 순서에 유의 (Unity는 X가 Pitch일 수 있음)
+                        $"R: {t.attitude.x:F1}  P: {t.attitude.y:F1}  Y: {t.attitude.z:F1}"; // Attitude: (Roll, Pitch, Yaw)
         
         statusText.text = status;
     }
