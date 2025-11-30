@@ -40,7 +40,7 @@ public class DroneManager : MonoBehaviour
     [SerializeField] private float sendRate = 0.05f; // 텔레메트리 전송 주기 (20Hz)
 
     [Header("Flight Parameters")]
-    [SerializeField] private float takeoffHeight = 2.0f; // 이륙 목표 높이
+    [SerializeField] private float takeoffHeight = 5.0f; // 이륙 목표 높이
     [SerializeField] private float maxSpeedHorizontal = 10f; // 최대 수평 속도 (m/s)
     [SerializeField] private float maxSpeedVertical = 3f;   // 최대 수직 속도 (m/s)
     [SerializeField] private float maxAcceleration = 5f; // 최대 가속도 (m/s^2)
@@ -49,7 +49,7 @@ public class DroneManager : MonoBehaviour
 
     [Header("Visual & FX")]
     [SerializeField] private float maxTiltAngle = 25f;    // 이동 시 최대 기울기 각도
-    [SerializeField] private float tiltSensitivity = 4.0f; // 기울기 반응 민감도
+    [SerializeField] private float tiltSensitivity = 2.0f; // 기울기 반응 민감도
     [SerializeField] private bool enableNoise = true;     // 호버링 노이즈 사용 여부
     [SerializeField] private float noiseStrength = 0.2f;  // 호버링 노이즈 강도
 
@@ -85,7 +85,7 @@ public class DroneManager : MonoBehaviour
     private Vector3 _noiseSeed;
     
     // 배터리 전압
-    private float _batteryVoltage = 12.6f;
+    private float _batteryVoltage = 12.8f;
 
     // 네트워크
     private UdpClient _udpReceiver;
@@ -381,20 +381,20 @@ public class DroneManager : MonoBehaviour
 
         // Tilt (기울임) 계산: 가속도 기반 목표 기울기 계산
         Vector3 localAccel = transform.InverseTransformDirection(_currentAccel);
-        float targetPitch = Mathf.Clamp(localAccel.z * tiltSensitivity, -maxTiltAngle, maxTiltAngle);
-        float targetRoll = Mathf.Clamp(-localAccel.x * tiltSensitivity, -maxTiltAngle, maxTiltAngle);
+        float targetRoll = Mathf.Clamp(localAccel.z * tiltSensitivity, -maxTiltAngle, maxTiltAngle);
+        float targetPitch = Mathf.Clamp(-localAccel.x * tiltSensitivity, -maxTiltAngle, maxTiltAngle);
         
         // 현재 드론의 로컬 오일러 각도를 -180~180 범위로 보정
         Vector3 currentEuler = transform.eulerAngles;
-        float currentPitch = (currentEuler.x > 180) ? currentEuler.x - 360 : currentEuler.x;
-        float currentRoll = (currentEuler.z > 180) ? currentEuler.z - 360 : currentEuler.z;
+        float currentRoll = (currentEuler.x > 180) ? currentEuler.x - 360 : currentEuler.x;
+        float currentPitch = (currentEuler.z > 180) ? currentEuler.z - 360 : currentEuler.z;
 
         // Tilt만 부드럽게 (반응성 조절 가능)
-        float newPitch = Mathf.Lerp(currentPitch, targetPitch, dt * 5.0f);
         float newRoll = Mathf.Lerp(currentRoll, targetRoll, dt * 5.0f);
+        float newPitch = Mathf.Lerp(currentPitch, targetPitch, dt * 5.0f);
 
         // 최종 회전 및 위치 적용
-        transform.rotation = Quaternion.Euler(newPitch, currentYaw, newRoll);
+        transform.rotation = Quaternion.Euler(newRoll, currentYaw, newPitch);
         transform.position = nextPos;
     }
 
@@ -415,8 +415,8 @@ public class DroneManager : MonoBehaviour
 
         // Eueler 각도를 읽어와서 -180 ~ 180 범위로 변환하고, Roll, Pitch, Yaw 순서로 재정렬
         Vector3 euler = transform.eulerAngles;
-        float roll = (euler.z > 180f) ? -(euler.z - 360f) : -euler.z;
-        float pitch = (euler.x > 180f) ? euler.x - 360f : euler.x;
+        float roll = (euler.x > 180f) ? -(euler.x - 360f) : -euler.x;
+        float pitch = (euler.z > 180f) ? euler.z - 360f : euler.z;
         float yaw = euler.y;
 
         CurrentTelemetry = new DroneTelemetry

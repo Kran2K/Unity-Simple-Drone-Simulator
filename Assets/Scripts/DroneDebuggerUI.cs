@@ -45,7 +45,7 @@ public class DroneDebuggerUI : MonoBehaviour
                         $"<b>[VELOCITY]</b>\n" +
                         $"X: {t.velocity.x:F2}  Y: {t.velocity.y:F2}  Z: {t.velocity.z:F2}\n\n" +
                         $"<b>[ATTITUDE]</b>\n" +
-                        $"R: {t.attitude.x:F1}  P: {t.attitude.y:F1}  Y: {t.attitude.z:F1}"; // Attitude: (Roll, Pitch, Yaw)
+                        $"Roll: {t.attitude.x:F1}  Pitch: {t.attitude.y:F1}  Yaw: {t.attitude.z:F1}"; // Attitude: (Pitch, Roll, Yaw)
         
         statusText.text = status;
     }
