@@ -97,6 +97,12 @@ public class DroneManager : MonoBehaviour
     private float _lastSendTime; // 마지막 텔레메트리 전송 시간
     private float _distanceToGround; // 지면과의 거리
 
+    // Public Accessors for UI
+    public string TargetIP => targetIP;
+    public int ListenPort => listenPort;
+    public int SendPort => sendPort;
+    public bool IsConnected => _isRunning && _udpReceiver != null;
+
     void Start()
     {
         Application.targetFrameRate = 60;
@@ -119,19 +125,57 @@ public class DroneManager : MonoBehaviour
 
     void OnDestroy()
     {
+        StopNetwork();
+    }
+
+    public void StopNetwork()
+    {
         _isRunning = false;
-        _udpReceiver?.Close();
-        _udpSender?.Close();
-        if (_recvThread != null && _recvThread.IsAlive) _recvThread.Join(100);
+        
+        // 소켓 강제 종료로 Receive 대기 상태 해제
+        if (_udpReceiver != null)
+        {
+            _udpReceiver.Close();
+            _udpReceiver = null;
+        }
+
+        if (_udpSender != null)
+        {
+            _udpSender.Close();
+            _udpSender = null;
+        }
+
+        // 스레드 종료 대기
+        if (_recvThread != null && _recvThread.IsAlive) 
+        {
+            // 타임아웃을 조금 더 넉넉하게 주되, 메인 스레드가 멈추지 않도록 주의
+            _recvThread.Join(200);
+        }
     }
 
     private void StartNetwork()
     {
+        if (_isRunning) return;
+
+        _isRunning = true;
         _recvThread = new Thread(UdpReceiverWork);
         _recvThread.IsBackground = true;
         _recvThread.Start();
         _udpSender = new UdpClient();
-        Debug.Log($"[Drone System] Initialized. Home at {_homePos}. Waiting for Commands...");
+        Debug.Log($"[Drone System] Network Started. Home at {_homePos}. Port: {listenPort}");
+    }
+
+    public void UpdateNetworkSettings(string newIP, int newListenPort, int newSendPort)
+    {
+        // 이미 실행 중이라면 중지
+        StopNetwork();
+
+        targetIP = newIP;
+        listenPort = newListenPort;
+        sendPort = newSendPort;
+
+        // 설정 적용 후 재시작
+        StartNetwork();
     }
 
     private void UdpReceiverWork()
