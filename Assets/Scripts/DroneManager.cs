@@ -477,25 +477,29 @@ public class DroneManager : MonoBehaviour
 
         // Tilt (기울임) 계산: 가속도 기반 목표 기울기 계산
         Vector3 localAccel = transform.InverseTransformDirection(_currentAccel);
-        float targetRoll = Mathf.Clamp(localAccel.z * tiltSensitivity, -maxTiltAngle, maxTiltAngle);
-        float targetPitch = Mathf.Clamp(-localAccel.x * tiltSensitivity, -maxTiltAngle, maxTiltAngle);
+        
+        // X축 가속(좌우) -> Roll(Z축 회전), Z축 가속(전후) -> Pitch(X축 회전)
+        float targetRoll = Mathf.Clamp(-localAccel.x * tiltSensitivity, -maxTiltAngle, maxTiltAngle);
+        float targetPitch = Mathf.Clamp(localAccel.z * tiltSensitivity, -maxTiltAngle, maxTiltAngle);
         
         // 현재 드론의 로컬 오일러 각도를 -180~180 범위로 보정
         Vector3 currentEuler = transform.eulerAngles;
-        float currentRoll = (currentEuler.x > 180) ? currentEuler.x - 360 : currentEuler.x;
-        float currentPitch = (currentEuler.z > 180) ? currentEuler.z - 360 : currentEuler.z;
+        // Unity Euler Rotation: X=Pitch, Y=Yaw, Z=Roll
+        float currentPitch = (currentEuler.x > 180) ? currentEuler.x - 360 : currentEuler.x;
+        float currentRoll = (currentEuler.z > 180) ? currentEuler.z - 360 : currentEuler.z;
 
         // Tilt만 부드럽게 (반응성 조절 가능)
-        float newRoll = Mathf.Lerp(currentRoll, targetRoll, dt * 5.0f);
         float newPitch = Mathf.Lerp(currentPitch, targetPitch, dt * 5.0f);
+        float newRoll = Mathf.Lerp(currentRoll, targetRoll, dt * 5.0f);
 
         // 각속도 계산
-        float rollVel = (newRoll - currentRoll) / dt;
         float pitchVel = (newPitch - currentPitch) / dt;
+        float rollVel = (newRoll - currentRoll) / dt;
         _currentAngularVel = new Vector3(rollVel, _yawVel, pitchVel);
 
         // 최종 회전 및 위치 적용
-        transform.rotation = Quaternion.Euler(newRoll, nextYaw, newPitch);
+        // Quaternion.Euler(x, y, z) -> (Pitch, Yaw, Roll)
+        transform.rotation = Quaternion.Euler(newPitch, nextYaw, newRoll);
         transform.position = nextPos;
     }
 
@@ -516,8 +520,9 @@ public class DroneManager : MonoBehaviour
 
         // Eueler 각도를 읽어와서 -180 ~ 180 범위로 변환하고, Roll, Pitch, Yaw 순서로 재정렬
         Vector3 euler = transform.eulerAngles;
-        float roll = (euler.x > 180f) ? -(euler.x - 360f) : -euler.x;
-        float pitch = (euler.z > 180f) ? euler.z - 360f : euler.z;
+        // Unity 좌표계: X=Pitch, Z=Roll, Y=Yaw
+        float pitch = (euler.x > 180f) ? euler.x - 360f : euler.x;
+        float roll = (euler.z > 180f) ? euler.z - 360f : euler.z;
         float yaw = euler.y;
 
         CurrentTelemetry = new DroneTelemetry

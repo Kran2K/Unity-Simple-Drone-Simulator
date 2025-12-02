@@ -137,7 +137,7 @@ class DroneDashboard(tk.Tk):
 
         self.entries = {}
         labels = ["X", "Y", "Z", "Yaw", "Yaw Rate"]
-        default_values = ["0.0", "5.0", "0.0", "0.0", "0.0"] # 이륙을 위한 기본 Y값
+        default_values = ["0.0", "5.0", "0.0", "0.0", "0.0"]
         keys = ["x", "y", "z", "yaw", "yaw_rate"]
         for i, (label, key, val) in enumerate(zip(labels, keys, default_values)):
             ttk.Label(cmd_frame, text=label).grid(row=i+1, column=0, sticky="w", pady=5)

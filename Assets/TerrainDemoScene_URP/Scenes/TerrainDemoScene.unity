@@ -3140,47 +3140,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.RectMask2D
   m_Padding: {x: -8, y: -5, z: -8, w: -5}
   m_Softness: {x: 0, y: 0}
---- !u!1 &533874958 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 1364b660fb8c2f9418d73dfbd2c38003, type: 3}
-  m_PrefabInstance: {fileID: 1509633886}
-  m_PrefabAsset: {fileID: 0}
 --- !u!4 &533874964 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 1364b660fb8c2f9418d73dfbd2c38003, type: 3}
   m_PrefabInstance: {fileID: 1509633886}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &533874965
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 533874958}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6f4a18909fcd78047b5d3cee4cc6f041, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::DroneManager
-  listenPort: 50100
-  targetIP: 127.0.0.1
-  sendPort: 50200
-  sendRate: 0.05
-  takeoffHeight: 5
-  maxSpeedHorizontal: 10
-  maxSpeedVertical: 3
-  maxAcceleration: 5
-  moveSmoothTime: 3
-  rotSmoothTime: 1
-  maxYawRate: 120
-  maxTiltAngle: 25
-  tiltSensitivity: 2
-  enableNoise: 1
-  noiseStrength: 0.2
-  landingDecelHeight: 2
-  normalLandingSpeed: 1
-  finalLandingSpeed: 0.2
-  landingDisarmHeight: 0.15
 --- !u!1001 &538028643
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -5852,6 +5816,70 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 1766490383188478063, guid: a93f80d252523a14d9206681c7713ce8, type: 3}
   m_PrefabInstance: {fileID: 864241674}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &902927201
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 902927203}
+  - component: {fileID: 902927202}
+  m_Layer: 0
+  m_Name: DroneRoot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &902927202
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 902927201}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6f4a18909fcd78047b5d3cee4cc6f041, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DroneManager
+  listenPort: 50100
+  targetIP: 127.0.0.1
+  sendPort: 50200
+  sendRate: 0.05
+  takeoffHeight: 5
+  maxSpeedHorizontal: 10
+  maxSpeedVertical: 3
+  maxAcceleration: 5
+  moveSmoothTime: 3
+  rotSmoothTime: 1
+  maxYawRate: 120
+  maxTiltAngle: 25
+  tiltSensitivity: 2
+  enableNoise: 1
+  noiseStrength: 0.2
+  landingDecelHeight: 2
+  normalLandingSpeed: 1
+  finalLandingSpeed: 0.2
+  landingDisarmHeight: 0.15
+--- !u!4 &902927203
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 902927201}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -238.0924, y: -28.564, z: 253.10205}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 533874964}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &915261116 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1766490383188478063, guid: a93f80d252523a14d9206681c7713ce8, type: 3}
@@ -10226,23 +10254,23 @@ PrefabInstance:
   serializedVersion: 2
   m_Modification:
     serializedVersion: 3
-    m_TransformParent: {fileID: 0}
+    m_TransformParent: {fileID: 902927203}
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: 1364b660fb8c2f9418d73dfbd2c38003, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -238.75
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 1364b660fb8c2f9418d73dfbd2c38003, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -28.79
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 1364b660fb8c2f9418d73dfbd2c38003, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 253.04716
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 1364b660fb8c2f9418d73dfbd2c38003, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 1
+      value: 0.7071068
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 1364b660fb8c2f9418d73dfbd2c38003, type: 3}
       propertyPath: m_LocalRotation.x
@@ -10250,7 +10278,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 1364b660fb8c2f9418d73dfbd2c38003, type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0
+      value: -0.7071068
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 1364b660fb8c2f9418d73dfbd2c38003, type: 3}
       propertyPath: m_LocalRotation.z
@@ -10262,7 +10290,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 1364b660fb8c2f9418d73dfbd2c38003, type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
+      value: -90
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 1364b660fb8c2f9418d73dfbd2c38003, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
@@ -10275,10 +10303,7 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 1364b660fb8c2f9418d73dfbd2c38003, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 533874965}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 1364b660fb8c2f9418d73dfbd2c38003, type: 3}
 --- !u!4 &1511273338 stripped
 Transform:
@@ -12839,7 +12864,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7afa89207b1634249b1cb4c839002557, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DroneDebuggerUI
-  manager: {fileID: 533874965}
+  manager: {fileID: 902927202}
   modeDropdown: {fileID: 1198453098}
   inputX: {fileID: 471837808}
   inputY: {fileID: 1104047775}
@@ -15958,4 +15983,4 @@ SceneRoots:
   - {fileID: 1586851376}
   - {fileID: 2102009159}
   - {fileID: 197224676}
-  - {fileID: 1509633886}
+  - {fileID: 902927203}
