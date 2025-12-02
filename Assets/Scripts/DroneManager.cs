@@ -35,9 +35,9 @@ public struct DroneTelemetry
 public class DroneManager : MonoBehaviour
 {
     [Header("Network Settings")]
-    [SerializeField] private int listenPort = 50200;
+    [SerializeField] private int listenPort = 50100;
     [SerializeField] private string targetIP = "127.0.0.1";
-    [SerializeField] private int sendPort = 50100;
+    [SerializeField] private int sendPort = 50200;
     [SerializeField] private float sendRate = 0.05f; // 텔레메트리 전송 주기 (20Hz)
 
     [Header("Flight Parameters")]

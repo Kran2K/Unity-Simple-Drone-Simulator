@@ -9,9 +9,9 @@ from typing import Dict, Any, Optional
 # Unity 시뮬레이터의 IP와 포트
 TARGET_IP = '127.0.0.1'
 # DroneManager.cs의 listenPort와 일치해야 함
-TARGET_PORT = 8080
+TARGET_PORT = 50100
 # DroneManager.cs의 sendPort와 일치해야 함
-LISTEN_PORT = 8081
+LISTEN_PORT = 50200
 # UI 갱신 주기 (ms). 20ms = 50 FPS
 UI_UPDATE_INTERVAL_MS = 20
 
@@ -66,34 +66,26 @@ class DroneDashboard(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("드론 GCS (Ground Control Station)")
-        self.geometry("600x750")
+        self.geometry("600x850")
         self.resizable(False, False)
         
         # 스레드 간의 안전한 데이터 공유를 위한 락(Lock)과 데이터 저장소
         self.latest_data: Optional[Dict] = None
         self.data_lock = threading.Lock()
 
-        # 통신 시스템 초기화
-        self.comm = DroneCommSystem(
-            target_ip=TARGET_IP, 
-            target_port=TARGET_PORT, 
-            listen_port=LISTEN_PORT
-        )
+        # 통신 시스템 (UI 초기화 후 apply_network_settings에서 초기화)
+        self.comm = None
+        self.telemetry_thread = None
 
         self._init_ui()
         
-        # 1. 텔레메트리 수신 스레드 시작
-        self.telemetry_thread = threading.Thread(
-            target=self.comm.listen_telemetry, 
-            args=(self.update_data_buffer,), 
-            daemon=True
-        )
-        self.telemetry_thread.start()
+        # 네트워크 연결 시작
+        self.apply_network_settings()
 
-        # 2. UI 갱신 루프 시작
+        # UI 갱신 루프 시작
         self.update_ui_loop()
 
-        # 3. 창 종료 시 자원 해제 핸들러 등록
+        # 창 종료 시 자원 해제 핸들러 등록
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
 
     def _init_ui(self):
@@ -101,7 +93,28 @@ class DroneDashboard(tk.Tk):
         style = ttk.Style()
         style.theme_use('clam')
 
-        # 텔레메트리 프레임
+        # 0. 네트워크 설정 프레임
+        net_frame = ttk.LabelFrame(self, text="네트워크 설정", padding=15)
+        net_frame.pack(fill="x", padx=10, pady=5)
+
+        ttk.Label(net_frame, text="Target IP:").grid(row=0, column=0, sticky="w")
+        self.entry_ip = ttk.Entry(net_frame, width=12)
+        self.entry_ip.insert(0, TARGET_IP)
+        self.entry_ip.grid(row=0, column=1, padx=5)
+
+        ttk.Label(net_frame, text="Target Port:").grid(row=0, column=2, sticky="w")
+        self.entry_send_port = ttk.Entry(net_frame, width=6)
+        self.entry_send_port.insert(0, str(TARGET_PORT))
+        self.entry_send_port.grid(row=0, column=3, padx=5)
+
+        ttk.Label(net_frame, text="Listen Port:").grid(row=0, column=4, sticky="w")
+        self.entry_listen_port = ttk.Entry(net_frame, width=6)
+        self.entry_listen_port.insert(0, str(LISTEN_PORT))
+        self.entry_listen_port.grid(row=0, column=5, padx=5)
+
+        ttk.Button(net_frame, text="연결", command=self.apply_network_settings).grid(row=0, column=6, padx=10)
+
+        # 1. 텔레메트리 프레임
         telemetry_frame = ttk.LabelFrame(self, text="실시간 텔레메트리", padding=15)
         telemetry_frame.pack(fill="x", padx=10, pady=10)
 
@@ -114,7 +127,7 @@ class DroneDashboard(tk.Tk):
             lbl.grid(row=i, column=1, sticky="w", padx=10)
             self.telemetry_labels[field] = lbl
 
-        # 커맨드 프레임
+        # 2. 커맨드 프레임
         cmd_frame = ttk.LabelFrame(self, text="명령 전송", padding=15)
         cmd_frame.pack(fill="both", expand=True, padx=10, pady=10)
 
@@ -137,6 +150,32 @@ class DroneDashboard(tk.Tk):
         btn_frame.grid(row=6, column=0, columnspan=2, pady=15)
         ttk.Button(btn_frame, text="모드 설정", command=self.send_mode_packet).pack(side="left", padx=5)
         ttk.Button(btn_frame, text="명령 전송", command=self.send_control_packet).pack(side="left", padx=5)
+
+    def apply_network_settings(self):
+        """입력된 설정으로 네트워크 연결을 초기화하거나 재설정합니다."""
+        target_ip = self.entry_ip.get()
+        try:
+            target_port = int(self.entry_send_port.get())
+            listen_port = int(self.entry_listen_port.get())
+        except ValueError:
+            print("[오류] 포트 번호는 정수여야 합니다.")
+            return
+
+        # 기존 연결 종료
+        if self.comm:
+            print(f"[System] Closing existing connection...")
+            self.comm.close()
+        
+        # 새 연결 시작
+        print(f"[System] Starting network: IP={target_ip}, TargetPort={target_port}, ListenPort={listen_port}")
+        self.comm = DroneCommSystem(target_ip, target_port, listen_port)
+        
+        self.telemetry_thread = threading.Thread(
+            target=self.comm.listen_telemetry, 
+            args=(self.update_data_buffer,), 
+            daemon=True
+        )
+        self.telemetry_thread.start()
 
     def update_data_buffer(self, packet: Dict[str, Any]):
         """
