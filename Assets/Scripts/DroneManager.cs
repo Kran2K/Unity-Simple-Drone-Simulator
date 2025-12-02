@@ -29,8 +29,21 @@ public struct DroneTelemetry
     public Vector3 position;  // Home 기준 로컬 위치
     public Vector3 velocity;  // 현재 속도
     public Vector3 acceleration; // 현재 가속도
-    public Vector3 attitude;  // 자세 (Euler 각도)
-    public Vector3 angularVel; // 각속도
+    public DroneAttitude attitude;  // 자세 (Euler 각도)
+    public DroneAttitude angularVel; // 각속도
+}
+
+[Serializable]
+public struct DroneAttitude
+{
+    public float roll;
+    public float pitch;
+    public float yaw;
+
+    public DroneAttitude(float r, float p, float y)
+    {
+        roll = r; pitch = p; yaw = y;
+    }
 }
 public class DroneManager : MonoBehaviour
 {
@@ -517,8 +530,8 @@ public class DroneManager : MonoBehaviour
             position = localPos,       // 로컬 위치
             velocity = _currentVel,    // 현재 속도
             acceleration = _currentAccel, // 현재 가속도
-            attitude = new Vector3(roll, pitch, yaw), // 자세 (Roll, Pitch, Yaw)
-            angularVel = _currentAngularVel // 각속도
+            attitude = new DroneAttitude(roll, pitch, yaw), // 자세 (Roll, Pitch, Yaw)
+            angularVel = new DroneAttitude(_currentAngularVel.x, _currentAngularVel.z, _currentAngularVel.y) // 각속도 (Unity X->Roll, Z->Pitch, Y->Yaw)
         };
 
         try

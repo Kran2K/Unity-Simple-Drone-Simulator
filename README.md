@@ -41,8 +41,8 @@
   "position": {"x": 0.0, "y": 5.0, "z": 0.0},
   "velocity": {"x": 0.0, "y": 0.0, "z": 0.0},
   "acceleration": {"x": 0.0, "y": 0.0, "z": 0.0},
-  "attitude": {"x": 0.0, "y": 0.0, "z": 0.0},
-  "angularVel": {"x": 0.0, "y": 0.0, "z": 0.0}
+  "attitude": {"roll": 0.0, "pitch": 0.0, "yaw": 0.0},
+  "angularVel": {"roll": 0.0, "pitch": 0.0, "yaw": 0.0}
 }
 ```
 
@@ -58,8 +58,8 @@
 | `position`     | `Vector3` | **Home 기준** 로컬 좌표계 위치 (m). Home은 시뮬레이터 시작 시 드론의 위치입니다. (Unity 좌표계: Y-up)                        |
 | `velocity`     | `Vector3` | **월드 좌표계** 기준 속도 (m/s).                                                                                                 |
 | `acceleration` | `Vector3` | **월드 좌표계** 기준 가속도 (m/s²).                                                                                              |
-| `attitude`     | `Vector3` | 드론의 자세. `x`: **Roll**, `y`: **Pitch**, `z`: **Yaw**. 단위는 도(degree)이며, Roll/Pitch는 `-180 ~ 180` 범위입니다. |
-| `angularVel`   | `Vector3` | **월드 좌표계** 기준 각속도 (deg/s). 현재 Yaw 각속도만 지원됩니다 (`y` 필드).                                                    |
+| `attitude`     | `Object`  | 드론의 자세. `roll`: **Roll**, `pitch`: **Pitch**, `yaw`: **Yaw**. 단위는 도(degree)이며, Roll/Pitch는 `-180 ~ 180` 범위입니다. |
+| `angularVel`   | `Object`  | **월드 좌표계** 기준 각속도 (deg/s). `roll`, `pitch`, `yaw` 속도입니다.                                                          |
 
 ---
 ### 명령 (Client -> Unity)
@@ -158,7 +158,7 @@
 
 ### 요구 사양
 
--   **Unity**: `2022.3.x` 또는 그 이상 (LTS 버전 권장)
+-   **Unity**: `6000.2.13f1` 또는 그 이상
 -   **Python**: `3.x` (예제 클라이언트 실행용)
 
 

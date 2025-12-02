@@ -128,9 +128,9 @@ public class DroneDebuggerUI : MonoBehaviour
                             $"<b>[ACCELERATION]</b>\n" +
                             $"X: {ms}{t.acceleration.x,6:F2}{me}  Y: {ms}{t.acceleration.y,6:F2}{me}  Z: {ms}{t.acceleration.z,6:F2}{me}\n\n" +
                             $"<b>[ATTITUDE]</b>\n" +
-                            $"Roll: {ms}{t.attitude.x,6:F1}{me}  Pitch: {ms}{t.attitude.y,6:F1}{me}  Yaw: {ms}{t.attitude.z,6:F1}{me}\n\n" +
+                            $"Roll: {ms}{t.attitude.roll,6:F1}{me}  Pitch: {ms}{t.attitude.pitch,6:F1}{me}  Yaw: {ms}{t.attitude.yaw,6:F1}{me}\n\n" +
                             $"<b>[ANGULAR VEL]</b>\n" +
-                            $"Roll: {ms}{t.angularVel.x,6:F1}{me}  Pitch: {ms}{t.angularVel.z,6:F1}{me}  Yaw: {ms}{t.angularVel.y,6:F1}{me}";
+                            $"Roll: {ms}{t.angularVel.roll,6:F1}{me}  Pitch: {ms}{t.angularVel.pitch,6:F1}{me}  Yaw: {ms}{t.angularVel.yaw,6:F1}{me}";
             
             statusText.text = status;
         }
