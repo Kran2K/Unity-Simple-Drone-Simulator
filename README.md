@@ -80,7 +80,8 @@
 | `x`    | `float`  | `type`이 `CMD`일 때 사용되며, 현재 비행 모드에 따라 위치 또는 속도 목표치를 나타냅니다. (아래 비행 모드 섹션 참고)                                 |
 | `y`    | `float`  | `type`이 `CMD`일 때 사용되며, 현재 비행 모드에 따라 위치 또는 속도 목표치를 나타냅니다.                                                              |
 | `z`    | `float`  | `type`이 `CMD`일 때 사용되며, 현재 비행 모드에 따라 위치 또는 속도 목표치를 나타냅니다.                                                              |
-| `yaw`  | `float`  | `type`이 `CMD`일 때 사용되며, 목표 Yaw 각도(heading)를 도(degree) 단위로 나타냅니다.                                                                   |
+| `yaw`  | `float`  | `type`이 `CMD`일 때 사용되며, 목표 Yaw 각도(heading)를 도(degree) 단위로 나타냅니다. `NaN`일 경우 `yaw_rate`만 사용하여 제어합니다.                      |
+| `yaw_rate`| `float` | `type`이 `CMD`일 때 사용되며, Yaw 회전 속도(deg/s)를 제한하거나 제어합니다. (기본값: `0`) <br> - `yaw`와 함께 사용 시: 해당 속도로 목표 각도까지 이동. <br> - `yaw`가 `NaN`일 시: 해당 속도로 계속 회전. |
 
 ---
 ## 좌표계 가이드 (NED vs. Unity)

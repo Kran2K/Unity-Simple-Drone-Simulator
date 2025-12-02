@@ -10,6 +10,7 @@ public class DroneDebuggerUI : MonoBehaviour
     [Header("Controls")]
     [SerializeField] private TMP_Dropdown modeDropdown;
     [SerializeField] private TMP_InputField inputX, inputY, inputZ, inputYaw;
+    [SerializeField] private TMP_InputField inputYawRate; // Added
     [SerializeField] private Button sendBtn;
 
     [Header("UI Groups")]
@@ -33,6 +34,22 @@ public class DroneDebuggerUI : MonoBehaviour
 
     private void Start()
     {
+        // UI 동적 생성 (Inspector 연결이 없을 경우)
+        if (inputYawRate == null && inputYaw != null)
+        {
+            GameObject obj = Instantiate(inputYaw.gameObject, inputYaw.transform.parent);
+            obj.name = "InputYawRate";
+            inputYawRate = obj.GetComponent<TMP_InputField>();
+            
+            // 위치 조정 (대략적인 오프셋, LayoutGroup이 있으면 자동 정렬됨)
+            // 기존 InputYaw 아래로 배치 시도
+            // 간단히 placeholder 변경
+            var placeholders = obj.GetComponentsInChildren<TextMeshProUGUI>();
+            foreach(var p in placeholders) {
+                if(p.text.Contains("Yaw") || p.text == "0") p.text = "YawRate";
+            }
+        }
+
         // 드롭다운 옵션 초기화 (POS, VEL, TAKEOFF, LAND)
         modeDropdown.ClearOptions();
         modeDropdown.AddOptions(new System.Collections.Generic.List<string> { "POS", "VEL", "TAKEOFF", "LAND" });
@@ -42,6 +59,7 @@ public class DroneDebuggerUI : MonoBehaviour
         
         // 입력 필드 초기값 설정
         inputX.text = "0"; inputY.text = "5"; inputZ.text = "0"; inputYaw.text = "0";
+        if (inputYawRate != null) inputYawRate.text = "0";
 
         // Settings UI Init
         if (settingsPanel != null)
@@ -197,9 +215,19 @@ public class DroneDebuggerUI : MonoBehaviour
         float.TryParse(inputX.text, out float x);
         float.TryParse(inputY.text, out float y);
         float.TryParse(inputZ.text, out float z);
-        float.TryParse(inputYaw.text, out float yaw);
+        
+        float yaw = 0f;
+        if (inputYaw.text.ToUpper() == "NAN") yaw = float.NaN;
+        else float.TryParse(inputYaw.text, out yaw);
 
-        DroneCommand p = new DroneCommand { type = "CMD", x = x, y = y, z = z, yaw = yaw };
+        float yawRate = 0f;
+        if (inputYawRate != null)
+        {
+            if (inputYawRate.text.ToUpper() == "NAN") yawRate = float.NaN;
+            else float.TryParse(inputYawRate.text, out yawRate);
+        }
+
+        DroneCommand p = new DroneCommand { type = "CMD", x = x, y = y, z = z, yaw = yaw, yaw_rate = yawRate };
         manager.InjectCommand(p);
     }
 

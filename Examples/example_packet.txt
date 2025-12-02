@@ -18,12 +18,17 @@
 // 드론에 제어 명령을 보낼 때 사용합니다.
 // - "POS" (위치) 모드: x, y, z는 Home 기준 목표 위치(m), yaw는 목표 기수(절대 각도, degree)입니다.
 // - "VEL" (속도) 모드: x, y, z는 월드 프레임 기준 목표 속도(m/s), yaw는 목표 기수(절대 각도, degree)입니다.
+// - yaw_rate (옵션): Yaw 회전 속도 (deg/s). 
+//   1. yaw와 yaw_rate가 모두 유효하면, yaw_rate 속도로 yaw 목표까지 회전합니다.
+//   2. yaw가 NaN이고 yaw_rate가 유효하면, yaw_rate 속도로 계속 회전합니다.
+//   3. yaw_rate가 0 또는 NaN이면, yaw 목표까지 회전합니다.
 {
   "type": "CMD",
   "x": 10.5,
   "y": 5.0,
   "z": -2.0,
-  "yaw": 90.0
+  "yaw": 90.0,
+  "yaw_rate": 0.0
 }
 
 

@@ -123,9 +123,9 @@ class DroneDashboard(tk.Tk):
         ttk.Combobox(cmd_frame, textvariable=self.mode_var, values=["POS", "VEL", "TAKEOFF", "LAND"], state="readonly").grid(row=0, column=1, pady=5, sticky="ew")
 
         self.entries = {}
-        labels = ["X", "Y", "Z", "Yaw"]
-        default_values = ["0.0", "5.0", "0.0", "0.0"] # 이륙을 위한 기본 Y값
-        keys = ["x", "y", "z", "yaw"]
+        labels = ["X", "Y", "Z", "Yaw", "Yaw Rate"]
+        default_values = ["0.0", "5.0", "0.0", "0.0", "0.0"] # 이륙을 위한 기본 Y값
+        keys = ["x", "y", "z", "yaw", "yaw_rate"]
         for i, (label, key, val) in enumerate(zip(labels, keys, default_values)):
             ttk.Label(cmd_frame, text=label).grid(row=i+1, column=0, sticky="w", pady=5)
             ent = ttk.Entry(cmd_frame)
@@ -134,7 +134,7 @@ class DroneDashboard(tk.Tk):
             self.entries[key] = ent
 
         btn_frame = ttk.Frame(cmd_frame)
-        btn_frame.grid(row=5, column=0, columnspan=2, pady=15)
+        btn_frame.grid(row=6, column=0, columnspan=2, pady=15)
         ttk.Button(btn_frame, text="모드 설정", command=self.send_mode_packet).pack(side="left", padx=5)
         ttk.Button(btn_frame, text="명령 전송", command=self.send_control_packet).pack(side="left", padx=5)
 
@@ -178,9 +178,12 @@ class DroneDashboard(tk.Tk):
         self.after(UI_UPDATE_INTERVAL_MS, self.update_ui_loop)
 
     def get_float_input(self, key: str) -> float:
-        """입력 필드에서 숫자 값을 안전하게 가져옵니다."""
+        """입력 필드에서 숫자 값을 안전하게 가져옵니다. 'NaN' 입력 시 float('nan') 반환."""
+        val = self.entries[key].get().strip()
+        if val.upper() == "NAN":
+            return float('nan')
         try:
-            return float(self.entries[key].get())
+            return float(val)
         except ValueError:
             return 0.0
 
@@ -189,7 +192,7 @@ class DroneDashboard(tk.Tk):
         packet = {
             "type": "MODE",
             "mode": self.mode_var.get(),
-            "x": 0.0, "y": 0.0, "z": 0.0, "yaw": 0.0 # 모드 변경 시 제어값은 사용되지 않음
+            "x": 0.0, "y": 0.0, "z": 0.0, "yaw": 0.0, "yaw_rate": 0.0 # 모드 변경 시 제어값은 사용되지 않음
         }
         self.comm.send_command(packet)
 
@@ -200,7 +203,8 @@ class DroneDashboard(tk.Tk):
             "x": self.get_float_input("x"),
             "y": self.get_float_input("y"),
             "z": self.get_float_input("z"),
-            "yaw": self.get_float_input("yaw")
+            "yaw": self.get_float_input("yaw"),
+            "yaw_rate": self.get_float_input("yaw_rate")
         }
         self.comm.send_command(packet)
 

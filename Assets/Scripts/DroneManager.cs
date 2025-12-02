@@ -14,6 +14,7 @@ public class DroneCommand
     public string mode;  // "POS", "VEL", "LAND", "TAKEOFF"
     public float x, y, z;
     public float yaw;
+    public float yaw_rate;
 }
 
 // 텔레메트리 패킷 (송신용 - 상태 정보)
@@ -46,6 +47,7 @@ public class DroneManager : MonoBehaviour
     [SerializeField] private float maxAcceleration = 5f; // 최대 가속도 (m/s^2)
     [SerializeField] private float moveSmoothTime = 3f; // Position 모드 응답성
     [SerializeField] private float rotSmoothTime = 1.0f;  // Yaw 회전 응답성
+    [SerializeField] private float maxYawRate = 120f; // 최대 회전 속도 (deg/s)
 
     [Header("Visual & FX")]
     [SerializeField] private float maxTiltAngle = 25f;    // 이동 시 최대 기울기 각도
@@ -74,6 +76,7 @@ public class DroneManager : MonoBehaviour
     private Vector3 _targetWorldPos; // 유니티 월드 좌표계 기준 목표 위치
     private Vector3 _targetLocalVel; // 로컬 속도 목표
     private float _targetYaw;        // 목표 Yaw 각도
+    private float _targetYawRate;    // 목표 Yaw 속도
 
     // 물리 시뮬레이션용 변수 (Damping Ref)
     private Vector3 _currentVel;    // 현재 속도
@@ -271,12 +274,14 @@ public class DroneManager : MonoBehaviour
             // 입력 x,y,z는 Home 기준 로컬 좌표. 월드 좌표로 변환하여 사용.
             _targetWorldPos = _homePos + new Vector3(p.x, p.y, p.z);
             _targetYaw = p.yaw;
+            _targetYawRate = p.yaw_rate;
         }
         else if (CurrentMode == FlightMode.Velocity)
         {
             // 속도 명령은 월드 프레임 기준 (NED/ENU 월드 기준)
             _targetLocalVel = new Vector3(p.x, p.y, p.z);
             _targetYaw = p.yaw; // 속도 모드에서도 Yaw는 각도 제어
+            _targetYawRate = p.yaw_rate;
         }
     }
 
@@ -422,7 +427,38 @@ public class DroneManager : MonoBehaviour
         _prevVel = _currentVel;
 
         // Yaw 축 회전 (부드럽게 보간)
-        float currentYaw = Mathf.SmoothDampAngle(transform.eulerAngles.y, _targetYaw, ref _yawVel, rotSmoothTime);
+        float currentYaw = transform.eulerAngles.y;
+        float nextYaw = currentYaw;
+
+        bool isYawValid = !float.IsNaN(_targetYaw);
+        bool isYawRateValid = !float.IsNaN(_targetYawRate) && Mathf.Abs(_targetYawRate) > 0.001f;
+
+        if (isYawValid && isYawRateValid)
+        {
+            // 1. Yaw + YawRate: Yaw로 이동하되, 속도 제한 적용 (전역 제한 maxYawRate 반영)
+            // 기존 MoveTowardsAngle(등속) 대신 SmoothDampAngle의 maxSpeed 파라미터를 사용하여 부드러운 가감속(Ease-In/Out) 적용
+            float speedLimit = Mathf.Min(Mathf.Abs(_targetYawRate), maxYawRate);
+            nextYaw = Mathf.SmoothDampAngle(currentYaw, _targetYaw, ref _yawVel, rotSmoothTime, speedLimit);
+        }
+        else if (!isYawValid && isYawRateValid)
+        {
+            // 2. YawRate Only: Yaw 값은 무시(NaN)하고 계속 회전 (전역 제한 maxYawRate 반영)
+            // 목표 각속도까지 부드럽게 도달 (가속도 제한 효과)
+            float targetRate = Mathf.Clamp(_targetYawRate, -maxYawRate, maxYawRate);
+            _yawVel = Mathf.Lerp(_yawVel, targetRate, dt * 5.0f);
+            nextYaw = currentYaw + _yawVel * dt;
+        }
+        else if (isYawValid)
+        {
+            // 3. Yaw Only: 기존 로직 (SmoothDamp) + 전역 속도 제한(maxYawRate) 적용
+            nextYaw = Mathf.SmoothDampAngle(currentYaw, _targetYaw, ref _yawVel, rotSmoothTime, maxYawRate);
+        }
+        else
+        {
+            // 둘 다 없음 -> 자연스럽게 감속
+            _yawVel = Mathf.Lerp(_yawVel, 0f, dt * 2.0f);
+            nextYaw = currentYaw + _yawVel * dt;
+        }
 
         // Tilt (기울임) 계산: 가속도 기반 목표 기울기 계산
         Vector3 localAccel = transform.InverseTransformDirection(_currentAccel);
@@ -444,7 +480,7 @@ public class DroneManager : MonoBehaviour
         _currentAngularVel = new Vector3(rollVel, _yawVel, pitchVel);
 
         // 최종 회전 및 위치 적용
-        transform.rotation = Quaternion.Euler(newRoll, currentYaw, newPitch);
+        transform.rotation = Quaternion.Euler(newRoll, nextYaw, newPitch);
         transform.position = nextPos;
     }
 
