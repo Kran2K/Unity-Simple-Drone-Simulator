@@ -151,6 +151,14 @@ public class DroneDebuggerUI : MonoBehaviour
         if (isSettingsOpen)
         {
             Time.timeScale = 0f; // Pause
+            
+            // 설정 창을 열 때마다 현재 Manager의 값으로 UI 갱신 (값이 꼬이는 것 방지)
+            if (manager != null)
+            {
+                ipInput.text = manager.TargetIP;
+                listenPortInput.text = manager.ListenPort.ToString();
+                sendPortInput.text = manager.SendPort.ToString();
+            }
         }
         else
         {
