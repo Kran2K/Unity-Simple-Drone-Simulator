@@ -112,22 +112,25 @@ public class DroneDebuggerUI : MonoBehaviour
             var t = manager.CurrentTelemetry;
 
             // UI에 표시할 드론 상태 텍스트
+            string ms = "<mspace=0.6em>";
+            string me = "</mspace>";
+            
             string status = $"<size=120%><b>DRONE STATUS</b></size>\n" +
                             $"----------------------\n" +
                             $"<b>MODE :</b> <color={(t.isArmed ? "green" : "red")}>{t.mode}</color>\n" +
                             $"<b>ARMED:</b> {(t.isArmed ? "YES" : "NO")}\n" +
-                            $"<b>BATT :</b> {t.battery} V\n" +
-                            $"<b>DIST_BOTTOM :</b> {(t.dist_bottom < 0 ? "N/A" : t.dist_bottom.ToString("F2") + " m")}\n\n" +
+                            $"<b>BATT :</b> {ms}{t.battery:00.0}{me} V\n" +
+                            $"<b>DIST_BOTTOM :</b> {ms}{(t.dist_bottom < 0 ? "   N/A" : t.dist_bottom.ToString("F2") + " m")}{me}\n\n" +
                             $"<b>[LOCAL POS] (Home Ref)</b>\n" +
-                            $"X: {t.position.x:F2}  Y: {t.position.y:F2}  Z: {t.position.z:F2}\n\n" +
+                            $"X: {ms}{t.position.x,6:F2}{me}  Y: {ms}{t.position.y,6:F2}{me}  Z: {ms}{t.position.z,6:F2}{me}\n\n" +
                             $"<b>[VELOCITY]</b>\n" +
-                            $"X: {t.velocity.x:F2}  Y: {t.velocity.y:F2}  Z: {t.velocity.z:F2}\n\n" +
+                            $"X: {ms}{t.velocity.x,6:F2}{me}  Y: {ms}{t.velocity.y,6:F2}{me}  Z: {ms}{t.velocity.z,6:F2}{me}\n\n" +
                             $"<b>[ACCELERATION]</b>\n" +
-                            $"X: {t.acceleration.x:F2}  Y: {t.acceleration.y:F2}  Z: {t.acceleration.z:F2}\n\n" +
+                            $"X: {ms}{t.acceleration.x,6:F2}{me}  Y: {ms}{t.acceleration.y,6:F2}{me}  Z: {ms}{t.acceleration.z,6:F2}{me}\n\n" +
                             $"<b>[ATTITUDE]</b>\n" +
-                            $"Roll: {t.attitude.x:F1}  Pitch: {t.attitude.y:F1}  Yaw: {t.attitude.z:F1}\n\n" +
+                            $"Roll: {ms}{t.attitude.x,6:F1}{me}  Pitch: {ms}{t.attitude.y,6:F1}{me}  Yaw: {ms}{t.attitude.z,6:F1}{me}\n\n" +
                             $"<b>[ANGULAR VEL]</b>\n" +
-                            $"X: {t.angularVel.x:F1}  Y: {t.angularVel.y:F1}  Z: {t.angularVel.z:F1}";
+                            $"Roll: {ms}{t.angularVel.x,6:F1}{me}  Pitch: {ms}{t.angularVel.z,6:F1}{me}  Yaw: {ms}{t.angularVel.y,6:F1}{me}";
             
             statusText.text = status;
         }

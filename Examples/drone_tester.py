@@ -200,15 +200,16 @@ class DroneDashboard(tk.Tk):
                 att = data.get("attitude", {})
                 ang_vel = data.get("angularVel", {})
 
-                # 텍스트 포맷팅을 여기서 한 번만 수행하여 효율성 증대
-                self.telemetry_labels["Time"].config(text=f"{data.get('time', 0):.2f} s")
+                self.telemetry_labels["Time"].config(text=f"{data.get('time', 0):>8.2f} s")
                 self.telemetry_labels["Mode"].config(text=data.get("mode", "N/A"))
-                self.telemetry_labels["Battery"].config(text=f"{data.get('battery', 0):.2f} V")
-                self.telemetry_labels["Position"].config(text=f"X: {pos.get('x',0):.2f}, Y: {pos.get('y',0):.2f}, Z: {pos.get('z',0):.2f}")
-                self.telemetry_labels["Velocity"].config(text=f"X: {vel.get('x',0):.2f}, Y: {vel.get('y',0):.2f}, Z: {vel.get('z',0):.2f}")
-                self.telemetry_labels["Acceleration"].config(text=f"X: {acc.get('x',0):.2f}, Y: {acc.get('y',0):.2f}, Z: {acc.get('z',0):.2f}")
-                self.telemetry_labels["Attitude"].config(text=f"R: {att.get('x',0):.1f}, P: {att.get('z',0):.1f}, Y: {att.get('y',0):.1f}")
-                self.telemetry_labels["AngularVel"].config(text=f"X: {ang_vel.get('x',0):.1f}, Y: {ang_vel.get('y',0):.1f}, Z: {ang_vel.get('z',0):.1f}")
+                self.telemetry_labels["Battery"].config(text=f"{data.get('battery', 0):>6.2f} V")
+                self.telemetry_labels["Position"].config(text=f"X: {pos.get('x',0):>6.2f}, Y: {pos.get('y',0):>6.2f}, Z: {pos.get('z',0):>6.2f}")
+                self.telemetry_labels["Velocity"].config(text=f"X: {vel.get('x',0):>6.2f}, Y: {vel.get('y',0):>6.2f}, Z: {vel.get('z',0):>6.2f}")
+                self.telemetry_labels["Acceleration"].config(text=f"X: {acc.get('x',0):>6.2f}, Y: {acc.get('y',0):>6.2f}, Z: {acc.get('z',0):>6.2f}")
+                # Attitude: X->Roll, Y->Pitch, Z->Yaw (Unity 좌표계 상의 매핑에 주의, 여기서는 수신된 데이터 기준)
+                self.telemetry_labels["Attitude"].config(text=f"Roll: {att.get('x',0):>6.1f}, Pitch: {att.get('y',0):>6.1f}, Yaw: {att.get('z',0):>6.1f}")
+                # AngularVel: X->Roll Rate, Y->Yaw Rate, Z->Pitch Rate. Display as Roll, Pitch, Yaw.
+                self.telemetry_labels["AngularVel"].config(text=f"Roll: {ang_vel.get('x',0):>6.1f}, Pitch: {ang_vel.get('z',0):>6.1f}, Yaw: {ang_vel.get('y',0):>6.1f}")
             except (tk.TclError, AttributeError):
                 # 창이 닫히는 과정에서 발생할 수 있는 사소한 에러는 무시
                 pass
