@@ -42,7 +42,7 @@ public class DroneCamera : MonoBehaviour
 
     void LateUpdate()
     {
-        if (!target) return;
+        if (!target || Time.timeScale == 0f) return;
 
         // 1. 마우스 우클릭으로 카메라 회전
         if (Input.GetMouseButton(1))

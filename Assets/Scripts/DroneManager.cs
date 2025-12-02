@@ -317,6 +317,8 @@ public class DroneManager : MonoBehaviour
     private void UpdateDynamics()
     {
         float dt = Time.deltaTime;
+        if (dt <= Mathf.Epsilon) return;
+
         Vector3 nextPos = transform.position;
 
         // Disarmed 상태 처리: 지면에 천천히 하강
