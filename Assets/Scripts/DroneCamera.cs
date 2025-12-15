@@ -71,7 +71,7 @@ public class DroneCamera : MonoBehaviour
         _cam.fieldOfView = Mathf.Clamp(_cam.fieldOfView, minFov, maxFov);
 
         // 4. 최종 카메라 위치와 회전 적용
-        Quaternion rotation = Quaternion.Euler(y, x, 0);
+        Quaternion rotation = Quaternion.Euler(y + 10, x, 0);
         Vector3 negDistance = new Vector3(0.0f, 0.0f, -currentDistance);
         
         // 타겟 위치에서 계산된 거리와 회전만큼 떨어진 위치를 계산합니다. (Y축으로 살짝 올려서 시점 보정)
